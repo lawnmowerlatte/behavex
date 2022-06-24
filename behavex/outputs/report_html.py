@@ -19,6 +19,7 @@ from behavex.outputs.report_utils import (
     gather_steps_with_definition,
     get_save_function,
     try_operate_descriptor,
+    pretty_print_time,
 )
 
 
@@ -29,8 +30,12 @@ def generate_report(output, joined=None, report=None):
     all_scenarios = sum((feature['scenarios'] for feature in features), [])
     features.sort(key=lambda feature: feature['name'])
     metrics_variables = get_metrics_variables(all_scenarios)
+    multiprocess_details = output['multiprocess_details']
+    totals, summary = export_to_html_table_summary(features)
+    multiprocess_details['efficiency'] = round((totals['Duration'] / multiprocess_details['processes']) / multiprocess_details['duration'], 2)
+    multiprocess_details['duration'] = pretty_print_time(multiprocess_details['duration'])
     html = export_result_to_html(
-        environment, features, metrics_variables, steps_definition, joined, report
+        environment, features, metrics_variables, steps_definition, multiprocess_details, joined, report
     )
     content_to_file = {'report.html': html}
     _create_files_report(content_to_file)
@@ -113,7 +118,7 @@ def get_metrics_variables(scenarios):
 
 
 def export_result_to_html(
-    environment, features, metrics_variables, steps_definition, joined=None, report=None
+    environment, features, metrics_variables, steps_definition,  multiprocess_details, joined=None, report=None,
 ):
     totals, summary = export_to_html_table_summary(features)
     tags, scenarios = get_value_filters(features)
@@ -128,6 +133,7 @@ def export_result_to_html(
         'report': report,
         'tags': list(tags),
         'scenarios': scenarios,
+        'multiprocess_details': multiprocess_details,
     }
     parameters_template.update(metrics_variables)
     template_handler = TemplateHandler(global_vars.jinja_templates_path)

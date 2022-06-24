@@ -91,6 +91,10 @@
                     <h6 id='footer-header'>
                         {{ 'commons.framework_name'|get_text }} -
                         {{ 'commons.framework_description'|get_text }}</h6>
+                    {%- if multiprocess_details.processes > 1 -%}
+                        <h6>Wall Time: {{ multiprocess_details.duration }}</h6>
+                        <h6>Efficiency: {{ multiprocess_details.efficiency * 100}}%</h6>
+                    {%- endif -%}
                 </div>
             </div>
         </div>

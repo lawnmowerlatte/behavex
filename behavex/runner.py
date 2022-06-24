@@ -152,6 +152,14 @@ def launch_behavex():
         if get_param('parallel_processes') > 1 and not get_param('dry_run')
         else False
     )
+    multiprocess_details = {
+        "start": time_init,
+        "end": None,
+        "duration": None,
+        "processes": parallel_processes,
+        "scheme": parallel_scheme,
+        "efficiency": None,
+    }
     if not multiprocess:
         parallel_scheme = ''
     set_behave_tags()
@@ -187,7 +195,8 @@ def launch_behavex():
             execution_codes, json_reports = launch_by_feature(
                 features_list, process_pool
             )
-        wrap_up_process_pools(process_pool, json_reports, multiprocess, scenario)
+
+        wrap_up_process_pools(process_pool, json_reports, multiprocess, multiprocess_details, scenario)
         time_end = time.time()
 
         if get_param('dry_run'):
@@ -418,7 +427,7 @@ def _launch_behave(args):
     return execution_code, generate_report
 
 
-def wrap_up_process_pools(process_pool, json_reports, multi_process, scenario=False):
+def wrap_up_process_pools(process_pool, json_reports, multi_process, multiprocess_details, scenario=False):
     merged_json = None
     output = os.path.join(get_env('OUTPUT'))
     try:
@@ -445,6 +454,9 @@ def wrap_up_process_pools(process_pool, json_reports, multi_process, scenario=Fa
         file_info.write(json.dumps(merged_json))
     if get_param('dry_run'):
         print('Generating outputs...')
+    multiprocess_details['end'] = time.time()
+    multiprocess_details['duration'] = multiprocess_details['end'] - multiprocess_details['start']
+    merged_json['multiprocess_details'] = multiprocess_details
     generate_reports(merged_json)
 
 
